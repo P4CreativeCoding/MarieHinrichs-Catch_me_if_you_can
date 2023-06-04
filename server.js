@@ -14,6 +14,11 @@ app.use(express.static(__dirname + "/public"));
 let players = [];
 let catcher = null;
 
+function getRandomColor() {
+  const colors = ["red", "blue", "green", "yellow", "orange", "purple"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
 io.on("connection", (socket) => {
   console.log("A user connected");
 
@@ -26,6 +31,7 @@ io.on("connection", (socket) => {
           x: Math.floor(Math.random() * 800),
           y: Math.floor(Math.random() * 600),
         },
+        color: getRandomColor(),
       };
 
       players.push(player);

@@ -25,7 +25,7 @@ function init() {
     if (Array.isArray(players)) {
       players.forEach((player) => {
         if (player.id === socket.id) {
-          renderPlayer(player.position);
+          renderPlayer(player);
         }
       });
     } else {
@@ -51,7 +51,7 @@ function init() {
   socket.on("playerMoved", (player) => {
     // Player movement update
     console.log("Player moved:", player);
-    renderPlayer(player.position);
+    renderPlayer(player);
   });
 
   socket.on("catcherLeft", () => {
@@ -64,9 +64,10 @@ function init() {
     console.log(`Player left: ${playerId}`);
   });
 
-  function renderPlayer(position) {
-    playerElement.style.left = position.x + "px";
-    playerElement.style.top = position.y + "px";
+  function renderPlayer(player) {
+    playerElement.style.left = player.position.x + "px";
+    playerElement.style.top = player.position.y + "px";
+    playerElement.style.backgroundColor = player.color;
   }
 
   socket.on("connect", () => {
