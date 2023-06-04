@@ -1,62 +1,99 @@
-// app.js
 const socket = io();
 
-socket.on("init", (data) => {
-  const { players, tagger } = data;
-  for (const player of players) {
-    createPlayerElement(player, tagger);
-  }
-});
+function init() {
+  const playerElement = document.getElementById("player");
 
-socket.on("update", (player) => {
-  const playerElement = document.getElementById(player.id);
-  if (playerElement) {
-    playerElement.style.left = `${player.x}px`;
-    playerElement.style.top = `${player.y}px`;
-  }
-});
+  // Spielerbewegung mit den Pfeiltasten
+  const movement = {
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  };
 
-socket.on("playerDisconnected", (playerId) => {
-  const playerElement = document.getElementById(playerId);
-  if (playerElement) {
-    playerElement.remove();
-  }
-});
+  function handlePlayerMovement(event) {
+    const key = event.key;
+    const isPressed = event.type === "keydown";
 
-socket.on("taggerSelected", (taggerId) => {
-  const previousTaggerElement = document.querySelector(".tagger");
-  if (previousTaggerElement) {
-    previousTaggerElement.classList.remove("tagger");
-  }
-  const newTaggerElement = document.getElementById(taggerId);
-  if (newTaggerElement) {
-    newTaggerElement.classList.add("tagger");
-  }
-});
+    switch (key) {
+      case "ArrowLeft": // Links
+        movement.left = isPressed;
+        break;
+      case "ArrowUp": // Oben
+        movement.up = isPressed;
+        break;
+      case "ArrowRight": // Rechts
+        movement.right = isPressed;
+        break;
+      case "ArrowDown": // Unten
+        movement.down = isPressed;
+        break;
+    }
 
-function createPlayerElement(player, tagger) {
-  const playerElement = document.createElement("div");
-  playerElement.id = player.id;
-  playerElement.className = "player";
-  playerElement.style.backgroundColor = player.color;
-  playerElement.style.left = `${player.x}px`;
-  playerElement.style.top = `${player.y}px`;
-  if (tagger === player.id) {
-    playerElement.classList.add("tagger");
+    const newPosition = {
+      x: playerElement.offsetLeft,
+      y: playerElement.offsetTop,
+    };
+
+    // Spielerbewegung an den Server senden
+    socket.emit("playerMoved", newPosition);
   }
-  document.getElementById("game").appendChild(playerElement);
+
+  // Spielerbewegung mit den Pfeiltasten
+  document.addEventListener("keydown", handlePlayerMovement);
+  document.addEventListener("keyup", handlePlayerMovement);
+
+  socket.on("playerData", (players) => {
+    if (Array.isArray(players)) {
+      players.forEach((player) => {
+        if (player.id === socket.id) {
+          renderPlayer(player.position);
+        }
+      });
+    } else {
+      console.log("Invalid player data received:", players);
+    }
+  });
+
+  socket.on("catcherSelected", (catcherId) => {
+    // Catcher selected
+    console.log(`Catcher selected: ${catcherId}`);
+  });
+
+  socket.on("playerJoined", (players) => {
+    // New player joined
+    console.log("Player joined:", players);
+  });
+
+  socket.on("gameFull", () => {
+    // Game is already full
+    console.log("Game is already full");
+  });
+
+  socket.on("playerMoved", (player) => {
+    // Player movement update
+    console.log("Player moved:", player);
+    renderPlayer(player.position);
+  });
+
+  socket.on("catcherLeft", () => {
+    // Catcher left the game
+    console.log("Catcher left the game");
+  });
+
+  socket.on("playerLeft", (playerId) => {
+    // Player left the game
+    console.log(`Player left: ${playerId}`);
+  });
+
+  function renderPlayer(position) {
+    playerElement.style.left = position.x + "px";
+    playerElement.style.top = position.y + "px";
+  }
+
+  socket.on("connect", () => {
+    socket.emit("join");
+  });
 }
 
-document.addEventListener("keydown", (event) => {
-  let movement = { x: 0, y: 0 };
-  if (event.key === "ArrowUp") {
-    movement.y = -10;
-  } else if (event.key === "ArrowDown") {
-    movement.y = 10;
-  } else if (event.key === "ArrowLeft") {
-    movement.x = -10;
-  } else if (event.key === "ArrowRight") {
-    movement.x = 10;
-  }
-  socket.emit("move", movement);
-});
+document.addEventListener("DOMContentLoaded", init);

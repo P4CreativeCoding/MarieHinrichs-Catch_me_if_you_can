@@ -2,7 +2,7 @@
   "name": "MarieHinrichs-Catch_me_if_you_can",
   "version": "1.0.0",
   "description": "Catch me if you can game",
-  "main": "script.js",
+  "main": "app.js",
   "scripts": {
     "start": "node server.js",
     "build": "echo \"Build completed\"",

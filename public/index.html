@@ -3,13 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Catch me if you can</title>
-    <link rel="stylesheet" href="styles.css" />
+    <title>Multiplayer Fangen Spiel</title>
+    <style>
+      #game-area {
+        width: 800px;
+        height: 600px;
+        border: 1px solid black;
+        position: relative;
+      }
+      #player {
+        width: 20px;
+        height: 20px;
+        background-color: blue;
+        border-radius: 50%;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+    </style>
   </head>
-
   <body>
-    <h1>Catch me if you can</h1>
-    <div id="game"></div>
+    <div id="game-area">
+      <div id="player"></div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>
   </body>
