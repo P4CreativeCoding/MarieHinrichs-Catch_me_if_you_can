@@ -45,10 +45,11 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("playerMoved", (position) => {
+  socket.on("move", (movement) => {
     const player = players.find((p) => p.id === socket.id);
     if (player) {
-      player.position = position;
+      player.position.x += movement.x;
+      player.position.y += movement.y;
       io.emit("playerMoved", player);
     }
   });

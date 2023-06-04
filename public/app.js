@@ -3,45 +3,23 @@ const socket = io();
 function init() {
   const playerElement = document.getElementById("player");
 
-  // Spielerbewegung mit den Pfeiltasten
-  const movement = {
-    up: false,
-    down: false,
-    left: false,
-    right: false,
-  };
-
   function handlePlayerMovement(event) {
-    const key = event.key;
-    const isPressed = event.type === "keydown";
+    let movement = { x: 0, y: 0 };
 
-    switch (key) {
-      case "ArrowLeft": // Links
-        movement.left = isPressed;
-        break;
-      case "ArrowUp": // Oben
-        movement.up = isPressed;
-        break;
-      case "ArrowRight": // Rechts
-        movement.right = isPressed;
-        break;
-      case "ArrowDown": // Unten
-        movement.down = isPressed;
-        break;
+    if (event.key === "ArrowUp") {
+      movement.y = -10;
+    } else if (event.key === "ArrowDown") {
+      movement.y = 10;
+    } else if (event.key === "ArrowLeft") {
+      movement.x = -10;
+    } else if (event.key === "ArrowRight") {
+      movement.x = 10;
     }
 
-    const newPosition = {
-      x: playerElement.offsetLeft,
-      y: playerElement.offsetTop,
-    };
-
-    // Spielerbewegung an den Server senden
-    socket.emit("playerMoved", newPosition);
+    socket.emit("move", movement);
   }
 
-  // Spielerbewegung mit den Pfeiltasten
   document.addEventListener("keydown", handlePlayerMovement);
-  document.addEventListener("keyup", handlePlayerMovement);
 
   socket.on("playerData", (players) => {
     if (Array.isArray(players)) {
