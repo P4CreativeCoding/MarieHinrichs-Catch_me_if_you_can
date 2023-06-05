@@ -62,12 +62,18 @@ function arePointsColliding(point1, point2) {
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.on("join", () => {
+  socket.on("join", (playerName, password) => {
+    if (password !== "0000") {
+      socket.emit("playerRejected");
+      return;
+    }
+
     if (players.length < MAX_PLAYERS) {
       const player = {
         id: socket.id,
+        name: playerName.slice(0, 6), // Begrenze den Spielernamen auf maximal 6 Zeichen
         position: {
-          x: Math.floor(Math.random() * 760) + 20, // Begrenze die Position auf das Spielfeld
+          x: Math.floor(Math.random() * 760) + 20,
           y: Math.floor(Math.random() * 560) + 20,
         },
         color: getRandomColor(),
@@ -75,8 +81,8 @@ io.on("connection", (socket) => {
 
       players.push(player);
       socket.emit("playerData", player);
-      io.emit("playerJoined", players, catchers); // Send both players data and current catchers to the new player
-      selectCatchers(); // Überprüfe, ob ein Fänger ausgewählt werden kann
+      io.emit("playerJoined", players, catchers);
+      selectCatchers();
     } else {
       socket.emit("gameFull");
     }

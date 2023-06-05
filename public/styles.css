@@ -1,8 +1,17 @@
+h1 {
+  text-align: center;
+}
+
 #game-area {
   width: 800px;
   height: 600px;
-  border: 1px solid black;
-  position: relative;
+  border: 6px solid black;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  transition: border-color 1s; /* Fügt eine Übergangseffekt für die Border-Farbe hinzu */
 }
 
 .player {
@@ -11,6 +20,20 @@
   border-radius: 50%;
   position: absolute;
   transition: left 0.1s, top 0.1s;
+}
+
+.player-name {
+  position: absolute;
+  top: -15px;
+  font-size: 12px;
+}
+
+.player-name-input {
+  width: 200px;
+  height: 30px;
+  font-size: 16px;
+  padding: 5px;
+  /* Weitere CSS-Stile für das Eingabefeld des Spielernamens */
 }
 
 .catcher {

@@ -3,6 +3,27 @@ const socket = io();
 function init() {
   const gameAreaElement = document.getElementById("game-area");
 
+  setInterval(() => {
+    const randomColor = getRandomColor();
+    gameAreaElement.style.borderColor = randomColor;
+  }, 1000);
+
+  function getRandomColor() {
+    const letters = "0123456789ABCDEF";
+    let color = "#";
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  }
+
+  const playerName = prompt(
+    "Bitte gib deinen Spielernamen ein (max. 6 Zeichen):"
+  );
+  const password = prompt("Bitte gib das Passwort ein:");
+
+  socket.emit("join", playerName, password);
+
   socket.on("playerData", (player) => {
     renderPlayer(player);
   });
@@ -29,6 +50,11 @@ function init() {
     setPlayerAsCatcher(catcherId);
   });
 
+  socket.on("catcherRejected", () => {
+    alert("Falsches Passwort. Du kannst nicht beitreten.");
+    location.reload(); // Lade die Seite neu, um erneut versuchen zu können
+  });
+
   function createPlayerElement(player) {
     const playerElement = document.createElement("div");
     playerElement.id = player.id;
@@ -36,6 +62,12 @@ function init() {
     playerElement.style.top = player.position.y + "px";
     playerElement.style.left = player.position.x + "px";
     playerElement.style.backgroundColor = player.color;
+
+    const playerNameElement = document.createElement("div");
+    playerNameElement.innerText = player.name; // Zeige den Spielernamen an
+    playerNameElement.classList.add("player-name");
+
+    playerElement.appendChild(playerNameElement);
 
     gameAreaElement.appendChild(playerElement);
   }
