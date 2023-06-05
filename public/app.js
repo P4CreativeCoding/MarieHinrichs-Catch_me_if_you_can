@@ -1,7 +1,48 @@
 const socket = io();
 
 function init() {
-  const playerElement = document.getElementById("player");
+  const gameAreaElement = document.getElementById("game-area");
+
+  socket.on("playerData", (player) => {
+    renderPlayer(player);
+  });
+
+  socket.on("playerJoined", (players) => {
+    gameAreaElement.innerHTML = "";
+    players.forEach((player) => {
+      createPlayerElement(player);
+    });
+  });
+
+  socket.on("playerMoved", (player) => {
+    renderPlayer(player);
+  });
+
+  socket.on("playerLeft", (playerId) => {
+    removePlayerElement(playerId);
+  });
+
+  socket.on("catcherSelected", (catcherId) => {
+    setPlayerAsCatcher(catcherId);
+  });
+
+  function createPlayerElement(player) {
+    const playerElement = document.createElement("div");
+    playerElement.id = player.id;
+    playerElement.classList.add("player");
+    playerElement.style.top = player.position.y + "px";
+    playerElement.style.left = player.position.x + "px";
+    playerElement.style.backgroundColor = player.color;
+
+    gameAreaElement.appendChild(playerElement);
+  }
+
+  function removePlayerElement(playerId) {
+    const playerElement = document.getElementById(playerId);
+    if (playerElement) {
+      playerElement.remove();
+    }
+  }
 
   function handlePlayerMovement(event) {
     let movement = { x: 0, y: 0 };
@@ -19,56 +60,33 @@ function init() {
     socket.emit("move", movement);
   }
 
-  document.addEventListener("keydown", handlePlayerMovement);
-
-  socket.on("playerData", (players) => {
-    if (Array.isArray(players)) {
-      players.forEach((player) => {
-        if (player.id === socket.id) {
-          renderPlayer(player);
-        }
-      });
-    } else {
-      console.log("Invalid player data received:", players);
-    }
-  });
-
-  socket.on("catcherSelected", (catcherId) => {
-    // Catcher selected
-    console.log(`Catcher selected: ${catcherId}`);
-  });
-
-  socket.on("playerJoined", (players) => {
-    // New player joined
-    console.log("Player joined:", players);
-  });
-
-  socket.on("gameFull", () => {
-    // Game is already full
-    console.log("Game is already full");
-  });
-
-  socket.on("playerMoved", (player) => {
-    // Player movement update
-    console.log("Player moved:", player);
-    renderPlayer(player);
-  });
-
-  socket.on("catcherLeft", () => {
-    // Catcher left the game
-    console.log("Catcher left the game");
-  });
-
-  socket.on("playerLeft", (playerId) => {
-    // Player left the game
-    console.log(`Player left: ${playerId}`);
-  });
-
   function renderPlayer(player) {
-    playerElement.style.left = player.position.x + "px";
-    playerElement.style.top = player.position.y + "px";
-    playerElement.style.backgroundColor = player.color;
+    const playerElement = document.getElementById(player.id);
+    if (playerElement) {
+      playerElement.style.left = player.position.x + "px";
+      playerElement.style.top = player.position.y + "px";
+    }
   }
+
+  function setPlayerAsCatcher(catcherId) {
+    console.log("Catcher selected: ", catcherId);
+    const playerElements = document.querySelectorAll(".player");
+    console.log(playerElements);
+    playerElements.forEach((element) => {
+      element.classList.remove("catcher");
+      if (element.id === catcherId) {
+        element.classList.add("catcher");
+      }
+      element.style.backgroundColor = getRandomColor();
+    });
+  }
+
+  function getRandomColor() {
+    const colors = ["red", "blue", "green", "yellow", "orange", "purple"];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  document.addEventListener("keydown", handlePlayerMovement);
 
   socket.on("connect", () => {
     socket.emit("join");
