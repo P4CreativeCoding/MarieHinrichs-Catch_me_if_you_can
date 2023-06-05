@@ -7,15 +7,18 @@ function init() {
     renderPlayer(player);
   });
 
-  socket.on("playerJoined", (players) => {
+  socket.on("playerJoined", (players, catcherId) => {
     gameAreaElement.innerHTML = "";
     players.forEach((player) => {
       createPlayerElement(player);
     });
+
+    setPlayerAsCatcher(catcherId); // Setze den Fänger für den neuen Spieler
   });
 
   socket.on("playerMoved", (player) => {
     renderPlayer(player);
+    checkCollision(player);
   });
 
   socket.on("playerLeft", (playerId) => {
@@ -69,21 +72,40 @@ function init() {
   }
 
   function setPlayerAsCatcher(catcherId) {
-    console.log("Catcher selected: ", catcherId);
     const playerElements = document.querySelectorAll(".player");
-    console.log(playerElements);
     playerElements.forEach((element) => {
       element.classList.remove("catcher");
       if (element.id === catcherId) {
         element.classList.add("catcher");
       }
-      element.style.backgroundColor = getRandomColor();
     });
   }
 
-  function getRandomColor() {
-    const colors = ["red", "blue", "green", "yellow", "orange", "purple"];
-    return colors[Math.floor(Math.random() * colors.length)];
+  function checkCollision(catcher) {
+    const catcherElement = document.getElementById(catcher.id);
+    const playerElements = document.querySelectorAll(".player");
+
+    playerElements.forEach((playerElement) => {
+      if (
+        playerElement.id !== catcherElement.id &&
+        isColliding(catcherElement, playerElement)
+      ) {
+        const playerId = playerElement.id;
+        socket.emit("catcherCollision", playerId);
+      }
+    });
+  }
+
+  function isColliding(element1, element2) {
+    const rect1 = element1.getBoundingClientRect();
+    const rect2 = element2.getBoundingClientRect();
+
+    return !(
+      rect1.right < rect2.left ||
+      rect1.left > rect2.right ||
+      rect1.bottom < rect2.top ||
+      rect1.top > rect2.bottom
+    );
   }
 
   document.addEventListener("keydown", handlePlayerMovement);
