@@ -13,6 +13,7 @@ app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
 
 let players = [];
 let squares = [];
+let MAX_PLAYERS = 2;
 
 function getRandomPosition() {
   const position = {
@@ -38,7 +39,7 @@ function removeSquare(squareId) {
 app.post("/login", function (req, res) {
   const { password } = req.body;
 
-  if (password === process.env.VALID_PASSWORD) {
+  if (password === "secret") {
     res.status(200).json({ message: "Login erfolgreich" });
   } else {
     res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
@@ -57,7 +58,7 @@ io.on("connection", (socket) => {
 
       players.push(player);
       socket.emit("playerData", players);
-      socket.broadcast.emit("playerJoined", player);
+      //socket.broadcast.emit("playerJoined", player);
 
       if (squares.length === 0) {
         const square = createSquare();

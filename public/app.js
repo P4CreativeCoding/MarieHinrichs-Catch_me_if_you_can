@@ -36,6 +36,7 @@ function initGame() {
   socket.emit("join", playerId);
 
   socket.on("playerData", (players) => {
+    clearGameArea(); // Alle Spieler-Elemente entfernen
     players.forEach((player) => {
       if (player.id === playerId) {
         createPlayerElement(player);
@@ -43,10 +44,6 @@ function initGame() {
         createOpponentElement(player);
       }
     });
-  });
-
-  socket.on("playerJoined", (player) => {
-    createOpponentElement(player);
   });
 
   socket.on("playerMoved", (player) => {
@@ -156,6 +153,13 @@ function initGame() {
       rect1.bottom < rect2.top ||
       rect1.top > rect2.bottom
     );
+  }
+}
+
+function clearGameArea() {
+  const gameAreaElement = document.getElementById("game-area");
+  while (gameAreaElement.firstChild) {
+    gameAreaElement.firstChild.remove();
   }
 }
 
