@@ -22,7 +22,18 @@
   </head>
   <body>
     <h1>Eat the Squares</h1>
-    <div id="game-area"></div>
+    <div id="login-container">
+      <h2>Login</h2>
+      <form id="login-form" onsubmit="login(event)">
+        <input type="password" id="password" placeholder="Password" required />
+        <button type="submit">Login</button>
+      </form>
+      <p id="login-error"></p>
+    </div>
+    <div id="game-container" style="display: none">
+      <div id="game-area"></div>
+      <div id="scoreboard"></div>
+    </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>
   </body>
