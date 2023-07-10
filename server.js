@@ -8,9 +8,10 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 const PORT = 3000;
-const MAX_PLAYERS = 20; // Ändere die maximale Spielerzahl
+const MAX_PLAYERS = 20;
 
 app.use(express.static(__dirname + "/public"));
+app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
 
 let players = [];
 let catchers = [];
@@ -58,6 +59,24 @@ function arePointsColliding(point1, point2) {
   );
   return distance <= 20; // Adjust the collision radius as needed
 }
+
+// Login-Routen
+app.post("/login", function (req, res) {
+  // Benutzername und Passwort aus dem Anfragekörper erhalten
+  const { username, password } = req.body;
+
+  // Überprüfen, ob Benutzername und Passwort korrekt sind
+  if (
+    username === process.env.VALID_USERNAME &&
+    password === process.env.VALID_PASSWORD
+  ) {
+    // Erfolgreiche Authentifizierung
+    res.status(200).json({ message: "Login erfolgreich" });
+  } else {
+    // Fehlgeschlagene Authentifizierung
+    res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
+  }
+});
 
 io.on("connection", (socket) => {
   console.log("A user connected");

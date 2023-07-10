@@ -17,12 +17,7 @@ function init() {
     return color;
   }
 
-  const playerName = prompt(
-    "Bitte gib deinen Spielernamen ein (max. 6 Zeichen):"
-  );
-  const password = prompt("Bitte gib das Passwort ein:");
-
-  socket.emit("join", playerName, password);
+  socket.emit("join");
 
   socket.on("playerData", (player) => {
     renderPlayer(player);
@@ -48,11 +43,6 @@ function init() {
 
   socket.on("catcherSelected", (catcherId) => {
     setPlayerAsCatcher(catcherId);
-  });
-
-  socket.on("catcherRejected", () => {
-    alert("Falsches Passwort. Du kannst nicht beitreten.");
-    location.reload(); // Lade die Seite neu, um erneut versuchen zu können
   });
 
   function createPlayerElement(player) {
@@ -147,4 +137,30 @@ function init() {
   });
 }
 
+function login(event) {
+  event.preventDefault();
+  const username = document.getElementById("username").value;
+  const password = document.getElementById("password").value;
+
+  // Senden der Login-Daten an den Server
+  fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.message === "Login erfolgreich") {
+        // Login erfolgreich, das Spiel anzeigen
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("game-container").style.display = "block";
+      } else {
+        // Fehler beim Login, Fehlermeldung anzeigen
+        document.getElementById("login-error").textContent =
+          "Ungültige Anmeldeinformationen";
+      }
+    });
+}
 document.addEventListener("DOMContentLoaded", init);
