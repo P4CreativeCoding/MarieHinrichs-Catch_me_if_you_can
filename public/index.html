@@ -16,7 +16,23 @@
         position: absolute;
         width: 20px;
         height: 20px;
+        border-radius: 50%;
         background-color: blue;
+      }
+
+      .opponent {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: green;
+      }
+
+      .square {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background-color: red;
       }
     </style>
   </head>
@@ -34,6 +50,7 @@
       <div id="game-area"></div>
       <div id="scoreboard"></div>
     </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>
   </body>

@@ -12,6 +12,7 @@ app.use(express.static(__dirname + "/public"));
 app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
 
 let players = [];
+let squares = [];
 
 function getRandomPosition() {
   const position = {
@@ -19,6 +20,19 @@ function getRandomPosition() {
     y: Math.floor(Math.random() * 560) + 20,
   };
   return position;
+}
+
+function createSquare() {
+  const square = {
+    id: squares.length + 1,
+    position: getRandomPosition(),
+  };
+  squares.push(square);
+  return square;
+}
+
+function removeSquare(squareId) {
+  squares = squares.filter((square) => square.id !== squareId);
 }
 
 app.post("/login", function (req, res) {
@@ -35,14 +49,23 @@ io.on("connection", (socket) => {
   console.log("A user connected");
 
   socket.on("join", () => {
-    const player = {
-      id: socket.id,
-      position: getRandomPosition(),
-    };
+    if (players.length < MAX_PLAYERS) {
+      const player = {
+        id: socket.id,
+        position: getRandomPosition(),
+      };
 
-    players.push(player);
-    socket.emit("playerData", players);
-    socket.broadcast.emit("playerJoined", player);
+      players.push(player);
+      socket.emit("playerData", players);
+      socket.broadcast.emit("playerJoined", player);
+
+      if (squares.length === 0) {
+        const square = createSquare();
+        io.emit("squareCreated", square);
+      }
+    } else {
+      socket.emit("gameFull");
+    }
   });
 
   socket.on("move", (movement) => {
@@ -54,6 +77,20 @@ io.on("connection", (socket) => {
         player.position.x = newX;
         player.position.y = newY;
         io.emit("playerMoved", player);
+      }
+    }
+  });
+
+  socket.on("squareEaten", (playerId, squareId) => {
+    const player = players.find((p) => p.id === playerId);
+    if (player) {
+      const square = squares.find((square) => square.id === squareId);
+
+      if (square) {
+        removeSquare(square.id);
+        io.emit("squareEaten", playerId, square.id);
+        const newSquare = createSquare();
+        io.emit("squareCreated", newSquare);
       }
     }
   });
