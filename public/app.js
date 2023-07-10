@@ -1,35 +1,54 @@
 const socket = io();
+let playerId;
+let score = 0;
+const MAX_SCORE = 10;
 
-function init() {
+function login(event) {
+  event.preventDefault();
+  const password = document.getElementById("password").value;
+
+  // Senden der Login-Daten an den Server
+  fetch("/login", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.message === "Login erfolgreich") {
+        playerId = socket.id;
+        document.getElementById("login-form").style.display = "none";
+        document.getElementById("game-container").style.display = "block";
+        initGame();
+      } else {
+        document.getElementById("login-error").textContent =
+          "Ungültige Anmeldeinformationen";
+      }
+    });
+}
+
+function initGame() {
   const gameAreaElement = document.getElementById("game-area");
+  const scoreboardElement = document.getElementById("scoreboard");
 
-  setInterval(() => {
-    const randomColor = getRandomColor();
-    gameAreaElement.style.borderColor = randomColor;
-  }, 1000);
+  document.addEventListener("keydown", handlePlayerMovement);
 
-  function getRandomColor() {
-    const letters = "0123456789ABCDEF";
-    let color = "#";
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
-  }
+  socket.emit("join", playerId);
 
-  socket.emit("join");
-
-  socket.on("playerData", (player) => {
-    renderPlayer(player);
+  socket.on("playerData", (players) => {
+    players.forEach((player) => {
+      if (player.id === playerId) {
+        createPlayerElement(player);
+      } else {
+        createOpponentElement(player);
+      }
+    });
   });
 
-  socket.on("playerJoined", (players, catcherId) => {
-    gameAreaElement.innerHTML = "";
-    players.forEach((player) => {
-      createPlayerElement(player);
-    });
-
-    setPlayerAsCatcher(catcherId); // Setze den Fänger für den neuen Spieler
+  socket.on("playerJoined", (player) => {
+    createOpponentElement(player);
   });
 
   socket.on("playerMoved", (player) => {
@@ -41,8 +60,14 @@ function init() {
     removePlayerElement(playerId);
   });
 
-  socket.on("catcherSelected", (catcherId) => {
-    setPlayerAsCatcher(catcherId);
+  socket.on("squareEaten", (playerId) => {
+    if (playerId === playerId) {
+      score++;
+      scoreboardElement.textContent = `Score: ${score}`;
+      if (score === MAX_SCORE) {
+        announceWinner();
+      }
+    }
   });
 
   function createPlayerElement(player) {
@@ -51,15 +76,18 @@ function init() {
     playerElement.classList.add("player");
     playerElement.style.top = player.position.y + "px";
     playerElement.style.left = player.position.x + "px";
-    playerElement.style.backgroundColor = player.color;
-
-    const playerNameElement = document.createElement("div");
-    playerNameElement.innerText = player.name; // Zeige den Spielernamen an
-    playerNameElement.classList.add("player-name");
-
-    playerElement.appendChild(playerNameElement);
 
     gameAreaElement.appendChild(playerElement);
+  }
+
+  function createOpponentElement(player) {
+    const opponentElement = document.createElement("div");
+    opponentElement.id = player.id;
+    opponentElement.classList.add("opponent");
+    opponentElement.style.top = player.position.y + "px";
+    opponentElement.style.left = player.position.x + "px";
+
+    gameAreaElement.appendChild(opponentElement);
   }
 
   function removePlayerElement(playerId) {
@@ -73,13 +101,13 @@ function init() {
     let movement = { x: 0, y: 0 };
 
     if (event.key === "ArrowUp") {
-      movement.y = -10;
+      movement.y = -20;
     } else if (event.key === "ArrowDown") {
-      movement.y = 10;
+      movement.y = 20;
     } else if (event.key === "ArrowLeft") {
-      movement.x = -10;
+      movement.x = -20;
     } else if (event.key === "ArrowRight") {
-      movement.x = 10;
+      movement.x = 20;
     }
 
     socket.emit("move", movement);
@@ -93,27 +121,14 @@ function init() {
     }
   }
 
-  function setPlayerAsCatcher(catcherId) {
-    const playerElements = document.querySelectorAll(".player");
-    playerElements.forEach((element) => {
-      element.classList.remove("catcher");
-      if (element.id === catcherId) {
-        element.classList.add("catcher");
-      }
-    });
-  }
+  function checkCollision(player) {
+    const playerElement = document.getElementById(player.id);
+    const squares = document.querySelectorAll(".square");
 
-  function checkCollision(catcher) {
-    const catcherElement = document.getElementById(catcher.id);
-    const playerElements = document.querySelectorAll(".player");
-
-    playerElements.forEach((playerElement) => {
-      if (
-        playerElement.id !== catcherElement.id &&
-        isColliding(catcherElement, playerElement)
-      ) {
-        const playerId = playerElement.id;
-        socket.emit("catcherCollision", playerId);
+    squares.forEach((square) => {
+      if (isColliding(playerElement, square)) {
+        square.remove();
+        socket.emit("squareEaten", playerId);
       }
     });
   }
@@ -129,40 +144,13 @@ function init() {
       rect1.top > rect2.bottom
     );
   }
-
-  document.addEventListener("keydown", handlePlayerMovement);
-
-  socket.on("connect", () => {
-    socket.emit("join");
-  });
 }
 
-function login(event) {
-  event.preventDefault();
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
-
-  // Senden der Login-Daten an den Server
-  fetch("/login", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.message === "Login erfolgreich") {
-        // Login erfolgreich, das Spiel anzeigen
-        const playerName = username; // Spielername aus dem Benutzernamen extrahieren
-        socket.emit("join", playerName, password); // Spielername an den Server senden
-        document.getElementById("login-form").style.display = "none";
-        document.getElementById("game-container").style.display = "block";
-      } else {
-        // Fehler beim Login, Fehlermeldung anzeigen
-        document.getElementById("login-error").textContent =
-          "Ungültige Anmeldeinformationen";
-      }
-    });
+function announceWinner() {
+  const gameContainerElement = document.getElementById("game-container");
+  const winnerElement = document.createElement("h2");
+  winnerElement.textContent = "You are the winner!";
+  gameContainerElement.appendChild(winnerElement);
 }
-document.addEventListener("DOMContentLoaded", init);
+
+document.getElementById("login-form").addEventListener("submit", login);

@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
@@ -14,66 +13,35 @@ app.use(express.static(__dirname + "/public"));
 app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
 
 let players = [];
-let catchers = [];
+let squares = [];
 
-function getRandomColor() {
-  const colors = ["red", "blue", "green", "yellow", "orange", "purple"];
-  return colors[Math.floor(Math.random() * colors.length)];
+function getRandomPosition() {
+  const position = {
+    x: Math.floor(Math.random() * 760) + 20,
+    y: Math.floor(Math.random() * 560) + 20,
+  };
+  return position;
 }
 
-function selectCatchers() {
-  if (players.length >= 2 && catchers.length < Math.ceil(players.length / 2)) {
-    const availablePlayers = players.filter(
-      (player) => !catchers.includes(player.id)
-    );
-    const randomIndex = Math.floor(Math.random() * availablePlayers.length);
-    const selectedPlayer = availablePlayers[randomIndex];
-    catchers.push(selectedPlayer.id);
-    io.emit("catcherSelected", selectedPlayer.id);
-  } else if (players.length < 2 && catchers.length > 0) {
-    catchers = [];
-    io.emit("catcherLeft");
-  }
+function createSquare() {
+  const square = {
+    id: squares.length + 1,
+    position: getRandomPosition(),
+  };
+  squares.push(square);
+  return square;
 }
 
-function checkCollision() {
-  catchers.forEach((catcherId) => {
-    const catcherPlayer = players.find((player) => player.id === catcherId);
-    if (catcherPlayer) {
-      players.forEach((player) => {
-        if (
-          player.id !== catcherPlayer.id &&
-          arePointsColliding(catcherPlayer.position, player.position)
-        ) {
-          catchers.push(player.id);
-          io.emit("catcherSelected", player.id);
-        }
-      });
-    }
-  });
+function removeSquare(squareId) {
+  squares = squares.filter((square) => square.id !== squareId);
 }
 
-function arePointsColliding(point1, point2) {
-  const distance = Math.sqrt(
-    (point1.x - point2.x) ** 2 + (point1.y - point2.y) ** 2
-  );
-  return distance <= 20; // Adjust the collision radius as needed
-}
-
-// Login-Routen
 app.post("/login", function (req, res) {
-  // Benutzername und Passwort aus dem Anfragekörper erhalten
-  const { username, password } = req.body;
+  const { password } = req.body;
 
-  // Überprüfen, ob Benutzername und Passwort korrekt sind
-  if (
-    username === process.env.VALID_USERNAME &&
-    password === process.env.VALID_PASSWORD
-  ) {
-    // Erfolgreiche Authentifizierung
+  if (password === process.env.VALID_PASSWORD) {
     res.status(200).json({ message: "Login erfolgreich" });
   } else {
-    // Fehlgeschlagene Authentifizierung
     res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
   }
 });
@@ -81,22 +49,21 @@ app.post("/login", function (req, res) {
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.on("join", (playerName) => {
+  socket.on("join", () => {
     if (players.length < MAX_PLAYERS) {
       const player = {
         id: socket.id,
-        name: playerName.slice(0, 6), // Begrenze den Spielernamen auf maximal 6 Zeichen
-        position: {
-          x: Math.floor(Math.random() * 760) + 20,
-          y: Math.floor(Math.random() * 560) + 20,
-        },
-        color: getRandomColor(),
+        position: getRandomPosition(),
       };
 
       players.push(player);
-      socket.emit("playerData", player);
-      io.emit("playerJoined", players, catchers);
-      selectCatchers();
+      socket.emit("playerData", players);
+      socket.broadcast.emit("playerJoined", player);
+
+      if (squares.length === 0) {
+        const square = createSquare();
+        io.emit("squareCreated", square);
+      }
     } else {
       socket.emit("gameFull");
     }
@@ -107,25 +74,30 @@ io.on("connection", (socket) => {
     if (player) {
       const newX = player.position.x + movement.x;
       const newY = player.position.y + movement.y;
-      // Überprüfe, ob die neue Position innerhalb des Spielfelds liegt
-      if (newX >= 20 && newX <= 780 && newY >= 20 && newY <= 580) {
+      if (newX >= 0 && newX <= 780 && newY >= 0 && newY <= 580) {
         player.position.x = newX;
         player.position.y = newY;
         io.emit("playerMoved", player);
-        checkCollision(); // Überprüfe Kollision nach jedem Spielerbewegung
       }
     }
+  });
+
+  socket.on("squareEaten", (playerId) => {
+    const squareId = squares.find(
+      (square) =>
+        square.position.x === player.position.x &&
+        square.position.y === player.position.y
+    ).id;
+
+    removeSquare(squareId);
+    io.emit("squareEaten", playerId);
+    const square = createSquare();
+    io.emit("squareCreated", square);
   });
 
   socket.on("disconnect", () => {
     console.log("A user disconnected");
     players = players.filter((p) => p.id !== socket.id);
-
-    if (catchers.includes(socket.id)) {
-      catchers = catchers.filter((id) => id !== socket.id);
-      io.emit("catcherLeft");
-    }
-
     io.emit("playerLeft", socket.id);
   });
 });
