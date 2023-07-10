@@ -6,9 +6,6 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-// Statische Dateien bereitstellen
-app.use(express.static(__dirname + "/public"));
-
 const PORT = 3000;
 const MAX_PLAYERS = 20;
 
@@ -85,18 +82,14 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("squareEaten", (playerId) => {
+  socket.on("squareEaten", (playerId, squareId) => {
     const player = players.find((p) => p.id === playerId);
     if (player) {
-      const square = squares.find(
-        (square) =>
-          square.position.x === player.position.x &&
-          square.position.y === player.position.y
-      );
+      const square = squares.find((square) => square.id === squareId);
 
       if (square) {
         removeSquare(square.id);
-        io.emit("squareEaten", playerId);
+        io.emit("squareEaten", playerId, square.id);
         const newSquare = createSquare();
         io.emit("squareCreated", newSquare);
       }

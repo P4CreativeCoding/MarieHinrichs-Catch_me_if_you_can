@@ -70,6 +70,10 @@ function initGame() {
     }
   });
 
+  socket.on("squareCreated", (square) => {
+    createSquareElement(square);
+  });
+
   function createPlayerElement(player) {
     const playerElement = document.createElement("div");
     playerElement.id = player.id;
@@ -88,6 +92,16 @@ function initGame() {
     opponentElement.style.left = player.position.x + "px";
 
     gameAreaElement.appendChild(opponentElement);
+  }
+
+  function createSquareElement(square) {
+    const squareElement = document.createElement("div");
+    squareElement.id = `square-${square.id}`;
+    squareElement.classList.add("square");
+    squareElement.style.top = square.position.y + "px";
+    squareElement.style.left = square.position.x + "px";
+
+    gameAreaElement.appendChild(squareElement);
   }
 
   function removePlayerElement(playerId) {
@@ -127,8 +141,9 @@ function initGame() {
 
     squares.forEach((square) => {
       if (isColliding(playerElement, square)) {
+        const squareId = square.id.replace("square-", "");
         square.remove();
-        socket.emit("squareEaten", playerId);
+        socket.emit("squareEaten", playerId, squareId);
       }
     });
   }
