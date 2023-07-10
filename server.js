@@ -81,12 +81,7 @@ app.post("/login", function (req, res) {
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.on("join", (playerName, password) => {
-    if (password !== "0000") {
-      socket.emit("playerRejected");
-      return;
-    }
-
+  socket.on("join", (playerName) => {
     if (players.length < MAX_PLAYERS) {
       const player = {
         id: socket.id,
