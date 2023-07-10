@@ -6,6 +6,9 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
+// Statische Dateien bereitstellen
+app.use(express.static(__dirname + "/public"));
+
 const PORT = 3000;
 const MAX_PLAYERS = 20;
 

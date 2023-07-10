@@ -20,6 +20,6 @@
   "homepage": "https://github.com/P4CreativeCoding/MarieHinrichs-Catch_me_if_you_can#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.6.1"
+    "socket.io": "^4.7.1"
   }
 }

@@ -19,7 +19,7 @@ function login(event) {
     .then((data) => {
       if (data.message === "Login erfolgreich") {
         playerId = socket.id;
-        document.getElementById("login-form").style.display = "none";
+        document.getElementById("login-container").style.display = "none";
         document.getElementById("game-container").style.display = "block";
         initGame();
       } else {
