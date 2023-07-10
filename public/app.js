@@ -60,7 +60,7 @@ function initGame() {
     removePlayerElement(playerId);
   });
 
-  socket.on("squareEaten", (playerId) => {
+  socket.on("squareEaten", (playerId, squareId) => {
     if (playerId === playerId) {
       score++;
       scoreboardElement.textContent = `Score: ${score}`;
