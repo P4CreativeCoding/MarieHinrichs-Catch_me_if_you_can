@@ -7,7 +7,7 @@ const server = http.createServer(app);
 const io = socketIO(server);
 
 const PORT = 3000;
-const MAX_PLAYERS = 20;
+const MAX_PLAYERS = 2;
 
 app.use(express.static(__dirname + "/public"));
 app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
@@ -61,8 +61,12 @@ io.on("connection", (socket) => {
       socket.broadcast.emit("playerJoined", player);
 
       if (squares.length === 0) {
-        const square = createSquare();
-        io.emit("squareCreated", square);
+        for (let i = 0; i < MAX_PLAYERS; i++) {
+          createSquare();
+        }
+        squares.forEach((square) => {
+          io.emit("squareCreated", square);
+        });
       }
     } else {
       socket.emit("gameFull");
@@ -78,6 +82,7 @@ io.on("connection", (socket) => {
         player.position.x = newX;
         player.position.y = newY;
         io.emit("playerMoved", player);
+        checkCollision(player);
       }
     }
   });
