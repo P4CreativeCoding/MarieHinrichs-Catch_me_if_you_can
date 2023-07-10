@@ -83,16 +83,21 @@ io.on("connection", (socket) => {
   });
 
   socket.on("squareEaten", (playerId) => {
-    const squareId = squares.find(
-      (square) =>
-        square.position.x === player.position.x &&
-        square.position.y === player.position.y
-    ).id;
+    const player = players.find((p) => p.id === playerId);
+    if (player) {
+      const square = squares.find(
+        (square) =>
+          square.position.x === player.position.x &&
+          square.position.y === player.position.y
+      );
 
-    removeSquare(squareId);
-    io.emit("squareEaten", playerId);
-    const square = createSquare();
-    io.emit("squareCreated", square);
+      if (square) {
+        removeSquare(square.id);
+        io.emit("squareEaten", playerId);
+        const newSquare = createSquare();
+        io.emit("squareCreated", newSquare);
+      }
+    }
   });
 
   socket.on("disconnect", () => {
