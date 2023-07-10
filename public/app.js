@@ -154,6 +154,8 @@ function login(event) {
     .then((data) => {
       if (data.message === "Login erfolgreich") {
         // Login erfolgreich, das Spiel anzeigen
+        const playerName = username; // Spielername aus dem Benutzernamen extrahieren
+        socket.emit("join", playerName, password); // Spielername an den Server senden
         document.getElementById("login-form").style.display = "none";
         document.getElementById("game-container").style.display = "block";
       } else {
