@@ -14,6 +14,7 @@ const GAME_WIDTH = 780;
 const GAME_HEIGHT = 580;
 
 function getRandomPosition() {
+  // Generieren einer zufälligen Position innerhalb der Spielfläche
   const position = {
     x: Math.floor(Math.random() * GAME_WIDTH),
     y: Math.floor(Math.random() * GAME_HEIGHT),
@@ -22,6 +23,7 @@ function getRandomPosition() {
 }
 
 function createWaldo() {
+  // Generieren einer zufälligen Startposition für Walter
   return getRandomPosition();
 }
 
@@ -32,8 +34,10 @@ app.post("/login", function (req, res) {
   const { password } = req.body;
 
   if (password === PASSWORD) {
+    // Bei erfolgreicher Anmeldung wird Erfolgsmeldung zurückgesendet
     res.status(200).json({ message: "Login erfolgreich" });
   } else {
+    // Bei ungültigen Anmeldeinformationen wird Fehlermeldung zurückgesendet
     res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
   }
 });
@@ -46,11 +50,13 @@ io.on("connection", (socket) => {
   });
 
   socket.on("waldoReset", () => {
+    // Reset von Walter: Generieren einer neuen zufälligen Position und Senden an alle Clients
     const newWaldoPosition = createWaldo();
     io.emit("waldoMoved", newWaldoPosition);
   });
 
   const waldoPosition = createWaldo();
+  // Senden der Position von Walter an den verbundenen Client
   socket.emit("waldoMoved", waldoPosition);
 
   socket.on("disconnect", () => {

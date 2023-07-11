@@ -18,10 +18,12 @@ function login(event) {
     .then((data) => {
       if (data.message === "Login erfolgreich") {
         playerId = socket.id;
+        // Verstecken des Login-Bereichs und Anzeigen des Spielbereichs
         document.getElementById("login-container").style.display = "none";
         document.getElementById("game-container").style.display = "block";
         initGame();
       } else {
+        // Anzeige einer Fehlermeldung bei ungültigen Anmeldeinformationen
         document.getElementById("login-error").textContent =
           "Ungültige Anmeldeinformationen";
       }
@@ -34,6 +36,7 @@ function initGame() {
   gameAreaElement.addEventListener("click", handleWaldoClick);
 
   socket.on("waldoMoved", (position) => {
+    // Aktualisierung der Position von Walter
     waldoPosition = position;
     renderWaldo();
   });
@@ -53,9 +56,11 @@ function renderWaldo() {
   const waldoElement = document.getElementById("waldo");
 
   if (waldoElement) {
+    // Aktualisierung der Position von Walter auf dem Bildschirm
     waldoElement.style.left = waldoPosition.x + "px";
     waldoElement.style.top = waldoPosition.y + "px";
   } else {
+    // Erstellen eines neuen Elements für Walter und Hinzufügen zum Spielbereich
     const newWaldoElement = document.createElement("div");
     newWaldoElement.id = "waldo";
     newWaldoElement.classList.add("waldo");
@@ -80,6 +85,7 @@ function handleWaldoClick(event) {
       clickY >= waldoRect.top &&
       clickY <= waldoRect.bottom
     ) {
+      // Der Spieler hat auf Walter geklickt -> sende Nachricht an Server
       socket.emit("waldoFound", socket.id);
     }
   }
