@@ -1,30 +1,37 @@
-# Catch Me If You Can
+# Where's the fat cat?
 
-Catch Me If You Can is a multiplayer online game where players can chase and catch each other in a virtual world. The objective of the game is to avoid getting caught while trying to catch other players.
+Play the game: https://catch-me-if-you-can-o4ar.onrender.com
+Welcome to Where's the fat cat? - a fun and interactive game where you need to find the fat cat, the elusive character, hidden within a busy scene.
 
-## Gameplay
+## Game Description
 
-- Each player is represented by a colored circle on the game board.
-- Players can move their circle around by using the arrow keys.
-- The catchers have to touch the other players to catch them.
-- If a player gets caught, they become a catcher.
+Where's the fat cat? is based on the popular children's book series of the name "Where's Waldo?". The objective of the game is to locate the fat cat in a large scene filled with various objects. Players can click on the screen to identify if they have found the fat cat.
 
-## How to Play
+## Technologies Used
 
-1. Access the game by clicking on the following link: [Catch Me If You Can](https://catch-me-if-you-can-o4ar.onrender.com)
-2. Use the arrow keys to move your circle and avoid getting caught.
-3. Try to catch other players by touching their circles.
-4. If you get caught, you become a catcher too and try to catch other players.
-5. Have fun and see how long you can survive!
+The game is built using the following technologies:
 
-## Development
+HTML/CSS: For the user interface and styling.
+JavaScript: For the game logic and interaction.
+Express.js: For handling server requests and serving static files.
+Socket.IO: For real-time communication between the client and server.
+Node.js: The JavaScript runtime environment for running the server.
+Getting Started
 
-The game was built using HTML, CSS, and JavaScript. It utilizes the Socket.IO library for real-time communication between players. The server-side logic is implemented using Node.js and Express.js.
+## To run the game locally, follow these steps:
 
-To run the game locally, follow these steps:
+Clone the repository: https://github.com/P4CreativeCoding/MarieHinrichs-Catch_me_if_you_can
+Navigate to the project directory: cd Catch_me_if_you_can
+Install the dependencies: npm install
+Start the server: npm start
+Open your web browser and visit: http://localhost:3000
 
-1. Clone the repository: `git clone https://github.com/your-username/catch-me-if-you-can.git`
-2. Navigate to the project directory: `cd catch-me-if-you-can`
-3. Install the dependencies: `npm install`
-4. Start the server: `node server.js`
-5. Open your browser and access the game at `http://localhost:3000`
+## Gameplay Instructions
+
+Launch the game by opening the provided URL in your web browser.
+Enter the password to log in and access the game.
+Once logged in, you will be presented with the game scene.
+Click on the scene to identify if you have found the fat cat.
+Continue playing to find the fat cat in different positions within the scene.
+
+## Feel free to customize the game according to your preferences
