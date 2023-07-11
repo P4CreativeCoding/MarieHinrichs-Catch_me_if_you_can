@@ -1,74 +1,130 @@
-// Test 1: Überprüfen, ob die Funktion bei "ArrowUp" die richtige Bewegung sendet
-test("handlePlayerMovement sends correct movement for ArrowUp", () => {
+const { fireEvent } = require("@testing-library/dom");
+
+test("handleWaldoClick sends waldoFound event when clicked on waldo", () => {
+  // Mock-DOM-Elemente erstellen
+  const waldoElement = document.createElement("div");
+  waldoElement.id = "waldo";
+
+  // Mock-Event erstellen
+  const event = {
+    clientX: 50,
+    clientY: 50,
+  };
+
+  // Mock-Socket erstellen
   const socket = {
     emit: jest.fn(),
+    id: "mockSocketId",
   };
 
-  const event = {
-    key: "ArrowUp",
-  };
+  // Mock-Elemente dem DOM hinzufügen
+  document.body.appendChild(waldoElement);
 
-  handlePlayerMovement(event);
+  // Event auslösen
+  handleWaldoClick(event, socket);
 
-  expect(socket.emit).toHaveBeenCalledWith("move", { x: 0, y: -10 });
+  // Überprüfen, ob der waldoFound-Event mit der richtigen Socket-ID gesendet wurde
+  expect(socket.emit).toHaveBeenCalledWith("waldoFound", "mockSocketId");
+
+  // Mock-Elemente aus dem DOM entfernen
+  document.body.removeChild(waldoElement);
 });
 
-// Test 2: Überprüfen, ob die Funktion bei "ArrowDown" die richtige Bewegung sendet
-test("handlePlayerMovement sends correct movement for ArrowDown", () => {
+test("handleWaldoClick does not send waldoFound event when clicked outside waldo", () => {
+  // Mock-Event erstellen
+  const event = {
+    clientX: 100,
+    clientY: 100,
+  };
+
+  // Mock-Socket erstellen
   const socket = {
     emit: jest.fn(),
+    id: "mockSocketId",
   };
 
-  const event = {
-    key: "ArrowDown",
-  };
+  // Event auslösen
+  handleWaldoClick(event, socket);
 
-  handlePlayerMovement(event);
-
-  expect(socket.emit).toHaveBeenCalledWith("move", { x: 0, y: 10 });
+  // Überprüfen, ob der waldoFound-Event nicht gesendet wurde
+  expect(socket.emit).not.toHaveBeenCalledWith("waldoFound", "mockSocketId");
 });
 
-// Test 3: Überprüfen, ob die Funktion bei "ArrowLeft" die richtige Bewegung sendet
-test("handlePlayerMovement sends correct movement for ArrowLeft", () => {
+test("handleWaldoClick does nothing when waldo element is not present", () => {
+  // Mock-Event erstellen
+  const event = {
+    clientX: 50,
+    clientY: 50,
+  };
+
+  // Mock-Socket erstellen
   const socket = {
     emit: jest.fn(),
+    id: "mockSocketId",
   };
 
-  const event = {
-    key: "ArrowLeft",
-  };
+  // Event auslösen
+  handleWaldoClick(event, socket);
 
-  handlePlayerMovement(event);
-
-  expect(socket.emit).toHaveBeenCalledWith("move", { x: -10, y: 0 });
+  // Überprüfen, ob der waldoFound-Event nicht gesendet wurde
+  expect(socket.emit).not.toHaveBeenCalledWith("waldoFound", "mockSocketId");
 });
 
-// Test 4: Überprüfen, ob die Funktion bei "ArrowRight" die richtige Bewegung sendet
-test("handlePlayerMovement sends correct movement for ArrowRight", () => {
+test("handleWaldoClick sends waldoFound event with correct coordinates", () => {
+  // Mock-DOM-Elemente erstellen
+  const waldoElement = document.createElement("div");
+  waldoElement.id = "waldo";
+  waldoElement.getBoundingClientRect = jest.fn(() => ({
+    left: 0,
+    right: 100,
+    top: 0,
+    bottom: 100,
+  }));
+
+  // Mock-Event erstellen
+  const event = {
+    clientX: 50,
+    clientY: 50,
+  };
+
+  // Mock-Socket erstellen
   const socket = {
     emit: jest.fn(),
+    id: "mockSocketId",
   };
 
-  const event = {
-    key: "ArrowRight",
-  };
+  // Mock-Elemente dem DOM hinzufügen
+  document.body.appendChild(waldoElement);
 
-  handlePlayerMovement(event);
+  // Event auslösen
+  handleWaldoClick(event, socket);
 
-  expect(socket.emit).toHaveBeenCalledWith("move", { x: 10, y: 0 });
+  // Überprüfen, ob der waldoFound-Event mit den korrekten Koordinaten gesendet wurde
+  expect(socket.emit).toHaveBeenCalledWith("waldoFound", "mockSocketId");
+
+  // Mock-Elemente aus dem DOM entfernen
+  document.body.removeChild(waldoElement);
 });
 
-// Test 5: Überprüfen, ob die Funktion bei einer unbekannten Taste keine Bewegung sendet
-test("handlePlayerMovement does not send movement for unknown key", () => {
+test("handleWaldoClick does nothing when waldo element has no boundingClientRect method", () => {
+  // Mock-Event erstellen
+  const event = {
+    clientX: 50,
+    clientY: 50,
+  };
+
+  // Mock-Socket erstellen
   const socket = {
     emit: jest.fn(),
+    id: "mockSocketId",
   };
 
-  const event = {
-    key: "Space",
-  };
+  // Mock-DOM-Element ohne boundingClientRect-Methode erstellen
+  const waldoElement = {};
 
-  handlePlayerMovement(event);
+  // Event auslösen
+  handleWaldoClick(event, socket);
 
-  expect(socket.emit).not.toHaveBeenCalled();
+  // Überprüfen, ob der waldoFound-Event nicht gesendet wurde
+  expect(socket.emit).not.toHaveBeenCalledWith("waldoFound", "mockSocketId");
 });

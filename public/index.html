@@ -3,41 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Eat the Squares</title>
+    <title>Where's the fat cat?</title>
     <style>
       #game-area {
         position: relative;
         width: 800px;
         height: 600px;
         border: 1px solid black;
+        background-image: url("https://img.welt.de/img/kmpkt/mobile176789469/2252503497-ci102l-w1024/wo-ist-der-lollipop.jpg");
+        background-size: cover;
+        background-repeat: no-repeat;
       }
 
-      .player {
+      .waldo {
         position: absolute;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: blue;
-      }
-
-      .opponent {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: green;
-      }
-
-      .square {
-        position: absolute;
-        width: 20px;
-        height: 20px;
-        background-color: red;
+        width: 50px;
+        height: 50px;
+        background-image: url("https://assets.stickpng.com/images/587e31f49686194a55adab6e.png");
+        background-size: cover;
+        cursor: pointer;
       }
     </style>
   </head>
   <body>
-    <h1>Eat the Squares</h1>
+    <h1>Where's the fat cat?</h1>
     <div id="login-container">
       <h2>Login</h2>
       <form id="login-form" onsubmit="login(event)">
@@ -48,9 +37,8 @@
     </div>
     <div id="game-container" style="display: none">
       <div id="game-area"></div>
-      <div id="scoreboard"></div>
     </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js"></script>
   </body>
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="app.js"></script>
 </html>

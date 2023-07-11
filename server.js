@@ -1,45 +1,37 @@
 const express = require("express");
 const http = require("http");
 const socketIO = require("socket.io");
+require("dotenv").config();
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIO(server);
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const PASSWORD = process.env.PASSWORD;
 
-app.use(express.static(__dirname + "/public"));
-app.use(express.json()); // Middleware zum Parsen des Anfragekörpers als JSON
-
-let players = [];
-let squares = [];
-let MAX_PLAYERS = 2;
+const GAME_WIDTH = 780;
+const GAME_HEIGHT = 580;
 
 function getRandomPosition() {
   const position = {
-    x: Math.floor(Math.random() * 760) + 20,
-    y: Math.floor(Math.random() * 560) + 20,
+    x: Math.floor(Math.random() * GAME_WIDTH),
+    y: Math.floor(Math.random() * GAME_HEIGHT),
   };
   return position;
 }
 
-function createSquare() {
-  const square = {
-    id: squares.length + 1,
-    position: getRandomPosition(),
-  };
-  squares.push(square);
-  return square;
+function createWaldo() {
+  return getRandomPosition();
 }
 
-function removeSquare(squareId) {
-  squares = squares.filter((square) => square.id !== squareId);
-}
+app.use(express.static(__dirname + "/public"));
+app.use(express.json());
 
 app.post("/login", function (req, res) {
   const { password } = req.body;
 
-  if (password === "secret") {
+  if (password === PASSWORD) {
     res.status(200).json({ message: "Login erfolgreich" });
   } else {
     res.status(401).json({ message: "Ungültige Anmeldeinformationen" });
@@ -49,57 +41,20 @@ app.post("/login", function (req, res) {
 io.on("connection", (socket) => {
   console.log("A user connected");
 
-  socket.on("join", () => {
-    if (players.length < MAX_PLAYERS) {
-      const player = {
-        id: socket.id,
-        position: getRandomPosition(),
-      };
-
-      players.push(player);
-      socket.emit("playerData", players);
-      //socket.broadcast.emit("playerJoined", player);
-
-      if (squares.length === 0) {
-        const square = createSquare();
-        io.emit("squareCreated", square);
-      }
-    } else {
-      socket.emit("gameFull");
-    }
+  socket.on("waldoFound", (playerId) => {
+    io.emit("waldoFound", playerId);
   });
 
-  socket.on("move", (movement) => {
-    const player = players.find((p) => p.id === socket.id);
-    if (player) {
-      const newX = player.position.x + movement.x;
-      const newY = player.position.y + movement.y;
-      if (newX >= 0 && newX <= 780 && newY >= 0 && newY <= 580) {
-        player.position.x = newX;
-        player.position.y = newY;
-        io.emit("playerMoved", player);
-      }
-    }
+  socket.on("waldoReset", () => {
+    const newWaldoPosition = createWaldo();
+    io.emit("waldoMoved", newWaldoPosition);
   });
 
-  socket.on("squareEaten", (playerId, squareId) => {
-    const player = players.find((p) => p.id === playerId);
-    if (player) {
-      const square = squares.find((square) => square.id === squareId);
-
-      if (square) {
-        removeSquare(square.id);
-        io.emit("squareEaten", playerId, square.id);
-        const newSquare = createSquare();
-        io.emit("squareCreated", newSquare);
-      }
-    }
-  });
+  const waldoPosition = createWaldo();
+  socket.emit("waldoMoved", waldoPosition);
 
   socket.on("disconnect", () => {
     console.log("A user disconnected");
-    players = players.filter((p) => p.id !== socket.id);
-    io.emit("playerLeft", socket.id);
   });
 });
 
